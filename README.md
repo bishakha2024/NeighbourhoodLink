@@ -1,5 +1,6 @@
 # NeighbourhoodLink
 
+
 Hyper-local digital marketplace & community connection platform for Group 1.
 
 ## Stack
@@ -105,3 +106,4 @@ After provisioning Storage, deploying its rules, and confirming uploads, set `EX
 Create an unsigned upload preset in Cloudinary Settings → Upload → Upload presets. Set allowed formats to images (jpg, jpeg, png, webp, heic) and a maximum file size appropriate for your account, such as 10 MB. Add the cloud name and preset name to `EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME` and `EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET` in `.env`, then restart Expo. The listing photo picker becomes available and stores the uploaded HTTPS image URL in Firestore. No Cloudinary SDK, API key, or API secret is required. Uploaded listing images are publicly accessible by URL. Keep Firebase Storage disabled. Cloudinary free usage is subject to its account quotas.
 
 Listings support up to six photos during creation and editing. Manage listing offers photo replacement/removal and permanent listing deletion with confirmation. The first photo is the card cover; details show the full gallery. Removing a photo or listing removes its reference from Firestore; hosted Cloudinary assets remain in the media library and can be deleted there.
+
