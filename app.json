@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "NeighbourhoodLink",
+    "slug": "neighbourhoodlink",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "neighbourhoodlink",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "plugins": [
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "NeighbourhoodLink uses your photos to add images to listings and community posts.",
+          "cameraPermission": "NeighbourhoodLink uses your camera to add images to listings and community posts."
+        }
+      ],
+      "expo-notifications"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.neighbourhoodlink.app"
+    },
+    "android": {
+      "package": "com.neighbourhoodlink.app",
+      "softwareKeyboardLayoutMode": "resize"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "name": "neighbourhoodlink",
+  "version": "1.0.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "lint": "expo lint",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test tests/*.test.cjs functions/*.test.js",
+    "test:rules": "firebase emulators:exec --project demo-neighbourhoodlink --only firestore \"node --test tests/firestore.rules.cjs\""
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "expo": "~57.0.1",
+    "expo-constants": "~57.0.21",
+    "expo-device": "~57.0.2",
+    "expo-file-system": "~57.0.7",
+    "expo-image-picker": "~57.0.19",
+    "expo-notifications": "~57.0.22",
+    "expo-router": "~57.0.23",
+    "expo-status-bar": "~57.0.0",
+    "firebase": "^12.19.0",
+    "react": "19.2.3",
+    "react-dom": "^19.2.3",
+    "react-native": "0.86.0",
+    "react-native-safe-area-context": "5.6.0",
+    "react-native-web": "^0.21.3"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "@types/react": "~19.2.0",
+    "firebase-tools": "^15.32.1",
+    "react-test-renderer": "^19.2.3",
+    "typescript": "~5.9.2"
+  }
+}

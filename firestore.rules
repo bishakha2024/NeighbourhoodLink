@@ -1,0 +1,93 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function owns(data) { return signedIn() && data.userId == request.auth.uid; }
+    function postExists(postId) {
+      let collectionId = 'Community Posts';
+      return exists(/databases/$(database)/documents/$(collectionId)/$(postId));
+    }
+    function ownsListing(listingId) {
+      return signedIn() && get(/databases/$(database)/documents/Listings/$(listingId)).data.userId == request.auth.uid;
+    }
+    function ownsPost(postId) {
+      let collectionId = 'Community Posts';
+      return signedIn() && get(/databases/$(database)/documents/$(collectionId)/$(postId)).data.userId == request.auth.uid;
+    }
+    function validReview(data) {
+      return data.reviewerId == request.auth.uid && data.reviewedUserId != request.auth.uid
+        && data.rating is int && data.rating >= 1 && data.rating <= 5
+        && data.comment is string && data.comment.size() > 0;
+    }
+    match /Users/{userId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.auth.uid == userId
+        && request.resource.data.userId == userId
+        && request.resource.data.verificationStatus == 'pending' && request.resource.data.rating == 0;
+      allow update: if signedIn() && request.auth.uid == userId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['location', 'fullName', 'preferences', 'profileImage']);
+      allow delete: if signedIn() && request.auth.uid == userId;
+    }
+    match /Users/{userId}/Devices/{deviceId} {
+      allow read, write: if signedIn() && request.auth.uid == userId;
+    }
+    match /Listings/{listingId} {
+      allow read: if signedIn();
+      allow create: if owns(request.resource.data);
+      allow update: if owns(resource.data) && request.resource.data.userId == resource.data.userId;
+      allow delete: if owns(resource.data);
+    }
+    match /Services/{serviceId} {
+      allow read: if signedIn();
+      allow create: if owns(request.resource.data);
+      allow update: if owns(resource.data) && request.resource.data.userId == resource.data.userId;
+      allow delete: if owns(resource.data);
+    }
+    match /{reactionCollection}/{reactionId} {
+      allow read: if signedIn() && reactionCollection in ['Listing Likes', 'Listing Comments'];
+      allow create: if reactionCollection in ['Listing Likes', 'Listing Comments'] && owns(request.resource.data)
+        && exists(/databases/$(database)/documents/Listings/$(request.resource.data.listingId))
+        && ((reactionCollection == 'Listing Likes' && reactionId == request.resource.data.listingId + '_' + request.auth.uid)
+          || (reactionCollection == 'Listing Comments' && request.resource.data.content is string && request.resource.data.content.size() > 0));
+      allow delete: if reactionCollection in ['Listing Likes', 'Listing Comments'] && (owns(resource.data) || ownsListing(resource.data.listingId));
+    }
+    match /Messages/{messageId} {
+      allow read: if signedIn() && (resource.data.senderId == request.auth.uid || resource.data.receiverId == request.auth.uid);
+      allow create: if signedIn() && request.resource.data.senderId == request.auth.uid
+        && request.resource.data.receiverId != request.auth.uid
+        && request.resource.data.text is string && request.resource.data.text.size() > 0;
+      allow delete: if signedIn() && (resource.data.senderId == request.auth.uid || resource.data.receiverId == request.auth.uid);
+    }
+    // Wildcards let the existing collection IDs contain spaces.
+    match /{collectionId}/{itemId} {
+      allow read: if signedIn() && collectionId in ['Community Posts', 'Post Likes', 'Post Comments'];
+      allow create: if collectionId == 'Community Posts' && owns(request.resource.data);
+      allow update: if collectionId == 'Community Posts' && owns(resource.data)
+        && request.resource.data.userId == resource.data.userId;
+      allow delete: if collectionId == 'Community Posts' && owns(resource.data);
+      allow delete: if collectionId in ['Post Likes', 'Post Comments'] && (owns(resource.data) || ownsPost(resource.data.postId));
+      allow create: if collectionId == 'Post Likes' && owns(request.resource.data)
+        && itemId == request.resource.data.postId + '_' + request.auth.uid
+        && postExists(request.resource.data.postId);
+      allow create: if collectionId == 'Post Comments' && owns(request.resource.data)
+        && request.resource.data.content is string && request.resource.data.content.size() > 0
+        && postExists(request.resource.data.postId);
+    }
+    match /Reviews/{reviewId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && validReview(request.resource.data)
+        && reviewId == request.auth.uid + '_' + request.resource.data.reviewedUserId;
+      allow update: if signedIn() && resource.data.reviewerId == request.auth.uid
+        && validReview(request.resource.data)
+        && request.resource.data.reviewedUserId == resource.data.reviewedUserId;
+      allow delete: if signedIn() && (resource.data.reviewerId == request.auth.uid || resource.data.reviewedUserId == request.auth.uid);
+    }
+    match /Reports/{reportId} {
+      allow delete: if owns(resource.data);
+      allow create: if owns(request.resource.data) && request.resource.data.status == 'pending'
+        && request.resource.data.details is string && request.resource.data.details.size() > 0;
+      allow read: if owns(resource.data) || (signedIn() && request.auth.token.admin == true);
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}
